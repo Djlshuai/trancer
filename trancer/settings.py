@@ -106,7 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
 TIME_ZONE = 'UTC'
 
@@ -141,14 +141,14 @@ TENCENT_SMS_TEMPLATE = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.10.129:6379", # 安装redis的主机的 IP 和 端口
+        "LOCATION": "redis://172.20.10.2:6379", # 安装redis的主机的 IP 和 端口
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {
                 "max_connections": 1000,
                 "encoding": 'utf-8'
             },
-            "PASSWORD": "foobared" # redis密码
+            "PASSWORD": "Wha002855" # redis密码
         }
     },
 }

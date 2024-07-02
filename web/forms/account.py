@@ -56,11 +56,11 @@ class SendSmsForm(forms.Form):
 
         #发短信&redis
         code = random.randrange(1000,9999)
-        res = sms.send_sms_single(mobile_phone,template_id,[code,])
-        if res['result'] != 0 :
-            err = res['errmsg']
-            raise ValidationError(f'短信发送失败:{err}')
-
+        # res = sms.send_sms_single(mobile_phone,template_id,[code,])
+        # if res['result'] != 0 :
+        #     err = res['errmsg']
+        #     raise ValidationError(f'短信发送失败:{err}')
+        print(f'验证码为{code}')
         conn = get_redis_connection()
         conn.set(mobile_phone,code,ex=60)
 
