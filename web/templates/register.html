@@ -56,7 +56,7 @@
        // 页面框架加载完成之后自动执行函数
         $(function () {
             bindClickBtnSms();
-            bindClickSubmit();
+            {#bindClickSubmit();#}
         });
          /*
         点击获取验证码的按钮绑定事件
@@ -72,21 +72,13 @@
 
                 // 发送ajax请求，把手机号发送过去
                 $.ajax({
-                    url: "{% url 'send_sms' %}", // 等价于 /send/sms/
+                    url: "{% url 'web:send_sms' %}", // 等价于 /send/sms/
                     type: "GET",
                     data: {mobile_phone: mobilePhone, tpl: "register"},
                     dataType: "JSON", // 将服务端返回的数据反序列化为字典
                     success: function (res) {
-                        // ajax请求发送成功之后，自动执行的函数； res就是后端返回的值
-                        if (res.status) {
-                            sendSmsRemind();
-                        } else {
-                            // 错误信息
-                            // console.log(res); // {status:False, error:{ mobile_phone: ["错误信息"，],code: ["错误信息"，] }  }
-                            $.each(res.error, function (key, value) {
-                                $("#id_" + key).next().text(value[0]);
-                            })
-                        }
+                        console.log(res)
+                        
                     }
                 })
 

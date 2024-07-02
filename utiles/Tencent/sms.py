@@ -21,6 +21,7 @@ def send_sms_single(phone_num, template_id, template_param_list):
     except HTTPError as e:
         response = {'result': 1000, 'errmsg': "网络异常发送失败"}
     return response
+    #response如果是0表示成功
 
 
 
