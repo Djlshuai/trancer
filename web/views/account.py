@@ -12,8 +12,15 @@ def register(request):
         form = account.RegisterModelForm()
         return render(request,'register.html',{'form' : form})
     else:
-        print(request.POST)
-        return JsonResponse({})
+        form = account.RegisterModelForm(data=request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            instance = form.save()
+            return JsonResponse({'status':True,'data':'/login/'})
+        else:
+            return JsonResponse({'status': False, 'error': form.errors})
+
+
 
 def send_sms(request):
     '''发送短信'''
@@ -24,3 +31,7 @@ def send_sms(request):
       #发短信
       #redis
     return JsonResponse({'status':False,'error':form.errors})
+
+
+def login(request):
+     return  render(request,'login.html')
