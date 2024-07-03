@@ -16,7 +16,7 @@ def register(request):
         if form.is_valid():
             print(form.cleaned_data)
             instance = form.save()
-            return JsonResponse({'status':True,'data':'/login/'})
+            return JsonResponse({'status':True,'data':'/login/sms'})
         else:
             return JsonResponse({'status': False, 'error': form.errors})
 
@@ -33,5 +33,17 @@ def send_sms(request):
     return JsonResponse({'status':False,'error':form.errors})
 
 
-def login(request):
-     return  render(request,'login.html')
+def login_sms(request):
+    if request.method == 'GET':
+          form = account.LoginSmsForm()
+          return  render(request,'login.html',{'form' : form})
+    else:
+        form = account.LoginSmsForm(data=request.POST)
+        if form.is_valid():
+            user_object = form.cleaned_data['mobile_phone']
+            return JsonResponse({'status': True, 'data': '/index/'})
+        else:
+            return JsonResponse({'status': False, 'error': form.errors})
+def index(request):
+    return  render(request,'index.html')
+
