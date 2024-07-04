@@ -173,3 +173,8 @@ class LoginSmsForm(Bootstrap,forms.Form):
             raise ValidationError('验证码错误，请重新输入')
 
         return code
+
+class LoginForm(Bootstrap,forms.Form):
+    username = forms.CharField(label='邮箱或手机号')
+    password = forms.CharField(label='密码', widget=forms.PasswordInput(render_value=True))
+    code = forms.CharField(label='图片验证码')
