@@ -1,5 +1,6 @@
 from django.conf.urls import url,include
 from web.views import account
+from web.views import home
 
 
 urlpatterns = [
@@ -8,6 +9,6 @@ urlpatterns = [
     url(r'^login/sms$', account.login_sms, name='login_sms'),
     url(r'^login/$', account.login, name='login'),
     url(r'^image/code$', account.image_code, name='image_code'),
-    url(r'^index/$', account.index, name='index')
-
+    url(r'^index/$', home.index, name='index'),
+    url(r'^logout/$', account.logout, name='logout')
 ]
