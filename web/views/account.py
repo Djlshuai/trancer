@@ -51,7 +51,7 @@ def login_sms(request):
     '''短信登录'''
     if request.method == 'GET':
           form = account.LoginSmsForm()
-          return  render(request,'login_sms.html',{'form' : form})
+          return  render(request,'login_sms.html',{'form': form})
     else:
         form = account.LoginSmsForm(data=request.POST)
         if form.is_valid():

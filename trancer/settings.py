@@ -154,3 +154,12 @@ CACHES = {
     },
 }
 
+WHITE_REGEX_URL_LIST = [
+    "/register/",
+    "/send/sms/",
+    "/login/sms/",
+    "/login/",
+    "/index/",
+    "/image/code/",
+]
+
