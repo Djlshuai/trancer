@@ -5,11 +5,13 @@ from web.forms.bootstrap import Bootstrap
 from web import models
 
 class ProjectModelForm(Bootstrap,forms.ModelForm):
+    bootstrap_class_exclude = ['color']
     class Meta:
         model = models.Project
         fields = ['name','color','desc']
         widgets = {
-            'desc':forms.Textarea
+            'desc':forms.Textarea,
+            'color':forms.RadioSelect
         }
 
     def __init__(self, request, *args, **kwargs):
