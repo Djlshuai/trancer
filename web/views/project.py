@@ -38,7 +38,7 @@ def project_star(request,project_type,project_id):
         return redirect('project_list')
 
     if project_type == 'join':
-        models.ProjectUser.objects.filter(id=project_id,creator=request.tracer).update(star=True)
+        models.ProjectUser.objects.filter(id=project_id,user=request.tracer).update(star=True)
         return redirect('project_list')
     return  HttpResponse('非法分子')
 
@@ -49,6 +49,6 @@ def project_unstar(request,project_type,project_id):
         return redirect('project_list')
 
     if project_type == 'join':
-        models.ProjectUser.objects.filter(id=project_id, creator=request.tracer).update(star=False)
+        models.ProjectUser.objects.filter(id=project_id, user=request.tracer).update(star=False)
         return redirect('project_list')
     return HttpResponse('非法分子')

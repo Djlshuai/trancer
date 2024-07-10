@@ -1,4 +1,5 @@
 {% load static %}
+{% load project %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,15 +37,13 @@
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
-{#        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">#}
-{#            <ul class="nav navbar-nav">#}
-{#                {% all_project_list request %}#}
-{##}
-{#                {% if request.tracer.project %}#}
-{#                    {% manage_menu_list request %}#}
-{#                {% endif %}#}
-{#            </ul>#}
-
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                {% all_project_list request %}
+                {% if request.project %}
+                  {% manage_menu_list request %}
+                {% endif %}
+            </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="#">工作台</a></li>
                 <li><a href="#">日历</a></li>

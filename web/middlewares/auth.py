@@ -25,3 +25,26 @@ class AuthMiddleware(MiddlewareMixin):
         if _object.end_datetime and _object.end_datetime < current_time:
             _object = models.Transaction.objects.filter(user=user_object,status=2,price_policy__category=1).order_by('id').first()
         request.tracer.price_policy = _object.price_policy
+
+    def process_view(self, request, view, args,kwargs):
+        #判断是url是不是manage开头的
+        '''如果不是就继续执行'''
+        if not request.path_info.startswith('/manage/'):
+            return
+        project_id = kwargs.get('project_id')
+
+        '''判断是不是我创建的'''
+        project_project = models.Project.objects.filter(creator=request.tracer,id=project_id).first()
+        if project_project:
+            request.project=project_project
+
+            return
+
+        '''判断是不是我参与的'''
+        project_user = models.ProjectUser.objects.filter(user=request.tracer,project_id=project_id).first()
+        if project_user:
+            request.project = project_user.project
+            return
+
+        '''如果都不是'''
+        return redirect('project_list')
