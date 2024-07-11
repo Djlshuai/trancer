@@ -14,8 +14,7 @@ def statistics(request,project_id):
 def file(request,project_id):
     return render(request, 'file.html')
 
-def wiki(request,project_id):
-    return render(request, 'wiki.html')
+
 
 
 def settings(request,project_id):

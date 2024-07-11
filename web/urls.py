@@ -3,6 +3,8 @@ from web.views import account
 from web.views import home
 from web.views import project
 from web.views import manage
+from web.views import wiki
+
 urlpatterns = [
     url(r'^register/$',account.register ,name='register'),
     url(r'^send/sms/$', account.send_sms, name='send_sms'),
@@ -22,7 +24,11 @@ urlpatterns = [
     url(r'^manage/(?P<project_id>\d+)/issues/$', manage.issues, name='issues'),
     url(r'^manage/(?P<project_id>\d+)/statistics/$', manage.statistics, name='statistics'),
     url(r'^manage/(?P<project_id>\d+)/file/$', manage.file, name='file'),
-    url(r'^manage/(?P<project_id>\d+)/wiki/$', manage.wiki, name='wiki'),
+
+    url(r'^manage/(?P<project_id>\d+)/wiki/$', wiki.wiki, name='wiki'),
+    url(r'^manage/(?P<project_id>\d+)/wiki/add/$', wiki.wiki_add, name='wiki_add'),
+    url(r'^manage/(?P<project_id>\d+)/wiki/catalog/$', wiki.wiki_catalog, name='wiki_catalog'),
+
     url(r'^manage/(?P<project_id>\d+)/settings/$', manage.settings, name='settings'),
 
 ]

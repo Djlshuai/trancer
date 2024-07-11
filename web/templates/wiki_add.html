@@ -1,6 +1,7 @@
 {% extends 'layout/manage.html' %}
-
+{% load static %}
 {% block css %}
+{#    <link rel="stylesheet" href="{% static 'plugin/editor-md/css/editormd.min.css' %}">#}
     <style>
         .panel-default {
             margin-top: 10px;
@@ -36,9 +37,12 @@
             margin-left: -1px;
         }
 
+        .editormd-fullscreen{
+            z-index: 1001;
+        }
     </style>
-
 {% endblock %}
+
 {% block content %}
     <div class="container-fluid">
 
@@ -52,45 +56,49 @@
                        href="{% url 'wiki_add' project_id=request.project.id %}">
                         <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建
                     </a>
-                    {#                    {% if wiki_object %}#}
-                    {#                        <a type="button" class="btn btn-primary btn-xs"#}
-                    {#                           href="{% url 'wiki_edit' project_id=request.tracer.project.id  wiki_id=wiki_object.id %}">#}
-                    {#                            <i class="fa fa-edit" aria-hidden="true"></i> 编辑#}
-                    {#                        </a>#}
-                    {#                        <a type="button" class="btn btn-danger btn-xs"#}
-                    {#                           href="{% url 'wiki_delete' project_id=request.tracer.project.id wiki_id=wiki_object.id %} ">#}
-                    {#                            <i class="fa fa-trash" aria-hidden="true"></i> 删除#}
-                    {#                        </a>#}
-                    {#                    {% endif %}#}
                 </div>
             </div>
             <div class="panel-body">
                 <div class="col-sm-3 title-list">
-                    <ul id="catalog"></ul>
-
+                    <ul id="catalog">
+                    </ul>
                 </div>
                 <div class="col-sm-9 content">
-                    {% if wiki_object %}
-                            {{ wiki_object.content }}
-                    {% else %}
-                        <div style="text-align: center;margin-top: 50px;">
-                            <h4> 《{{ request.project.name }}》wiki文档库 </h4>
-                            <a href="{% url 'wiki_add' project_id=request.project.id %}">
-                                <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建文章
-                            </a>
-                        </div>
-                    {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            {% if field.name == "content" %}
+                                <div class="form-group">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    <div id="editor">
+                                        {{ field }}
+                                    </div>
+{#                                    <span class="error-msg">{{ field.errors.0 }}</span>#}
+                                </div>
+                            {% else %}
+                                <div class="form-group">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+{#                                    <span class="error-msg">{{ field.errors.0 }}</span>#}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary">提 交</button>
+                    </form>
+
                 </div>
                 <div></div>
             </div>
         </div>
+
     </div>
 {% endblock %}
 {% block js %}
-    <script>
+<script>
 
-        var WIKI_DETAIL_URL = "{% url 'wiki' project_id=request.project.id %}";
-        $(function () {
+    var WIKI_DETAIL_URL = "{% url 'wiki' project_id=request.project.id %}";
+     $(function () {
 
             initCatalog();
 
@@ -98,7 +106,7 @@
 
         });
 
-        function initCatalog() {
+      function initCatalog() {
             $.ajax({
                 url: "{% url 'wiki_catalog' project_id=request.project.id %}",
                 type: "GET",
@@ -124,5 +132,5 @@
         }
 
 
-    </script>
+</script>
 {% endblock %}

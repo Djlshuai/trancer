@@ -37,7 +37,6 @@ class AuthMiddleware(MiddlewareMixin):
         project_project = models.Project.objects.filter(creator=request.tracer,id=project_id).first()
         if project_project:
             request.project=project_project
-
             return
 
         '''判断是不是我参与的'''
