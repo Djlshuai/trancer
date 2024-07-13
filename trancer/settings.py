@@ -163,3 +163,9 @@ WHITE_REGEX_URL_LIST = [
     "/image/code/",
 ]
 
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
+

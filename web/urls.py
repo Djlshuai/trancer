@@ -28,6 +28,9 @@ urlpatterns = [
     url(r'^manage/(?P<project_id>\d+)/wiki/$', wiki.wiki, name='wiki'),
     url(r'^manage/(?P<project_id>\d+)/wiki/add/$', wiki.wiki_add, name='wiki_add'),
     url(r'^manage/(?P<project_id>\d+)/wiki/catalog/$', wiki.wiki_catalog, name='wiki_catalog'),
+    url(r'^manage/(?P<project_id>\d+)/wiki/catalog/$', wiki.wiki_catalog, name='wiki_catalog'),
+    url(r'^manage/(?P<project_id>\d+)/wiki/delete/(?P<wiki_id>\d+)/$', wiki.wiki_delete, name='wiki_delete'),
+    url(r'^manage/(?P<project_id>\d+)/wiki/edit/(?P<wiki_id>\d+)/$', wiki.wiki_edit, name='wiki_edit'),
 
     url(r'^manage/(?P<project_id>\d+)/settings/$', manage.settings, name='settings'),
 

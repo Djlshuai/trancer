@@ -2,12 +2,12 @@ from django.shortcuts import render,HttpResponse,redirect
 from web.forms.project import ProjectModelForm
 from web import models
 from django.http import JsonResponse
+from utiles.Tencent import cos
+import time
 
 def project_list(request):
     if request.method == 'GET':
-
         project_dict = {'star': [], 'my': [], 'join': []}
-
         my_project_list = models.Project.objects.filter(creator=request.tracer)
         for row in my_project_list:
             if row.star:
@@ -26,6 +26,13 @@ def project_list(request):
     else:
         form = ProjectModelForm(request,data=request.POST)
         if form.is_valid():
+            '''为项目存储桶'''
+            timestamp = int(time.time())
+            bucket = "{}-{}-1317059587".format(request.tracer.mobile_phone,timestamp)
+            region = 'ap-guangzhou'
+            cos.create_bucket(bucket,region)
+            form.instance.region = region
+            form.instance.bucket = bucket
             form.instance.creator = request.tracer
             form.save()
             return JsonResponse({'status':True})
