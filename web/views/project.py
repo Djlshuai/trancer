@@ -4,6 +4,7 @@ from web import models
 from django.http import JsonResponse
 from utiles.Tencent import cos
 import time
+from django.views.decorators.csrf import csrf_exempt
 
 def project_list(request):
     if request.method == 'GET':
@@ -28,7 +29,8 @@ def project_list(request):
         if form.is_valid():
             '''为项目存储桶'''
             timestamp = int(time.time())
-            bucket = "{}-{}-1317059587".format(request.tracer.mobile_phone,timestamp)
+            name = form.cleaned_data['name']
+            bucket = "{}-{}-1317059587".format(name,timestamp)
             region = 'ap-guangzhou'
             cos.create_bucket(bucket,region)
             form.instance.region = region

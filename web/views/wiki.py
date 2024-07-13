@@ -5,7 +5,9 @@ from web.forms.wiki import WikeModelForm
 from django.urls import reverse
 from web import models
 from django.http import JsonResponse
-
+from django.views.decorators.csrf import csrf_exempt
+from utiles.encrypt import uid
+from utiles.Tencent.cos import upload_file
 
 def wiki(request, project_id):
     wiki_id = request.GET.get('wiki_id')
@@ -65,3 +67,23 @@ def wiki_edit(request,project_id,wiki_id):
         previous_url = "{0}?wiki_id={1}".format(url, wiki_id)
         return redirect(previous_url)
     return render(request, 'wiki_form.html', {'form': form})
+
+
+@csrf_exempt
+def wiki_upload(request,project_id):
+    result = {
+        'success': 0,
+        'message': None,
+        'url': None
+    }
+    image_object = request.FILES.get('editormd-image-file')
+    if not image_object:
+        result['message'] = '文件不存在'
+        return JsonResponse(result)
+    ext = image_object.name.rsplit('.')[-1]
+    key = "{}.{}".format(uid(request.tracer.mobile_phone), ext)
+    url = upload_file(request.project.bucket,request.project.region,image_object,key)
+    print(url)
+    result['success'] = 1
+    result['url'] = url
+    return JsonResponse(result)
