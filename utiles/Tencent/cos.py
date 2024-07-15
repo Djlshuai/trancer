@@ -21,6 +21,23 @@ def create_bucket(bucket,region="ap-guangzhou"):
         ACL='public-read'
     )
 
+    cors_config = {
+        'CORSRule': [
+            {
+                'AllowedOrigin': '*',
+                'AllowedMethod': ['GET', 'PUT', 'HEAD', 'POST', 'DELETE'],
+                'AllowedHeader': "*",
+                'ExposeHeader': "*",
+                'MaxAgeSeconds': 500
+            }
+        ]
+    }
+
+    client.put_bucket_cors(
+        Bucket=bucket,
+        CORSConfiguration=cors_config
+    )
+
 def upload_file(bucket, region, file_object, key):
     config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
     client = CosS3Client(config)
