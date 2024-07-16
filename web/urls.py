@@ -4,6 +4,7 @@ from web.views import home
 from web.views import project
 from web.views import manage
 from web.views import wiki
+from web.views import file
 
 urlpatterns = [
     url(r'^register/$',account.register ,name='register'),
@@ -23,7 +24,6 @@ urlpatterns = [
     url(r'^manage/(?P<project_id>\d+)/dashboard/$', manage.dashboard, name='dashboard'),
     url(r'^manage/(?P<project_id>\d+)/issues/$', manage.issues, name='issues'),
     url(r'^manage/(?P<project_id>\d+)/statistics/$', manage.statistics, name='statistics'),
-    url(r'^manage/(?P<project_id>\d+)/file/$', manage.file, name='file'),
 
     url(r'^manage/(?P<project_id>\d+)/wiki/$', wiki.wiki, name='wiki'),
     url(r'^manage/(?P<project_id>\d+)/wiki/add/$', wiki.wiki_add, name='wiki_add'),
@@ -32,6 +32,9 @@ urlpatterns = [
     url(r'^manage/(?P<project_id>\d+)/wiki/delete/(?P<wiki_id>\d+)/$', wiki.wiki_delete, name='wiki_delete'),
     url(r'^manage/(?P<project_id>\d+)/wiki/edit/(?P<wiki_id>\d+)/$', wiki.wiki_edit, name='wiki_edit'),
     url(r'^manage/(?P<project_id>\d+)/wiki/upload/$', wiki.wiki_upload, name='wiki_upload'),
+
+    url(r'^manage/(?P<project_id>\d+)/file/$', file.file, name='file'),
+
 
     url(r'^manage/(?P<project_id>\d+)/settings/$', manage.settings, name='settings'),
 
