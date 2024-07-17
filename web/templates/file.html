@@ -1,4 +1,5 @@
 {% extends 'layout/manage.html' %}
+{% load static %}]
 {% block css %}
     <style>
         .panel-default .panel-heading {
@@ -61,10 +62,10 @@
                     {% endfor %}
                 </div>
                 <div class="function">
-{#                    <div class="btn btn-primary btn-xs upload" style="position: relative">#}
-{#                        <div><i class="fa fa-upload" aria-hidden="true"></i> 上传文件</div>#}
-{#                        <input type="file" multiple name="uploadFile" id="uploadFile">#}
-{#                    </div>#}
+                    <div class="btn btn-primary btn-xs upload" style="position: relative">
+                        <div><i class="fa fa-upload" aria-hidden="true"></i> 上传文件</div>
+                        <input type="file" multiple name="uploadFile" id="uploadFile">
+                    </div>
                     <a class="btn btn-success btn-xs" data-toggle="modal" data-target="#addModal"
                        data-whatever="新建文件夹">
                         <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建文件夹
@@ -116,12 +117,11 @@
                                     <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
                                 </a>
                             {% else %}
-{#                                <a class="btn btn-default btn-xs"#}
-{#                                   href="{% url 'file_download' project_id=request.tracer.project.id file_id=item.id %}">#}
-{#                                    <i class="fa fa-cloud-download" aria-hidden="true"></i>#}
-{#                                </a>#}
+                                {#                                <a class="btn btn-default btn-xs"#}
+                                {#                                   href="{% url 'file_download' project_id=request.tracer.project.id file_id=item.id %}">#}
+                                {#                                    <i class="fa fa-cloud-download" aria-hidden="true"></i>#}
+                                {#                                </a>#}
                             {% endif %}
-
                             <a class="btn btn-danger btn-xs"
                                data-toggle="modal"
                                data-fid="{{ item.id }}"
@@ -147,7 +147,7 @@
                 <div class="modal-body">
                     <form id="form">
                         {% csrf_token %}
-                        <input class="hide" type="text" name="fid" id="fid"> 
+                        <input class="hide" type="text" name="fid" id="fid">
                         {% for field in form %}
                             <div class="form-group">
                                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -164,45 +164,70 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">×</span></button>
+                <h4>是否要确定删除？</h4>
+                <p style="padding-top: 20px;padding-bottom: 20px;">
+                    文件夹中包含的所有的文件都会被删除。
+                </p>
+                <p style="text-align: right;">
+                    <a class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close">取 消</a>
+                    <button id="btnDelete" type="button" class="btn btn-danger btn-sm">确 定</button>
+                </p>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
+    <script src="{% static 'js/cos-js-sdk-v5.min.js' %}"></script>
     <script>
 
+        var COS_CREDENTIAL = "{% url 'cos_credential' project_id=request.project.id %}";
+        var FILE_POST = "{% url 'file_post' project_id=request.project.id %}";
+        var CURRENT_FOLDER_ID = "{{ folder_object.id }}";
+       
+       
+        $(function () {
+            initAddModal();
+            bindModelSubmit();
+            bindDeleteSubmit();
+            {#bindUploadFile()#}
+        });
 
-         $(function () {
-                initAddModal();
-                bindModelSubmit();
+        function initAddModal() {
+            $('#addModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered the modal
+                var recipient = button.data('whatever'); // Extract info from data-* attributes
+                var name = button.data('name'); // Extract info from data-* attributes
+                var fid = button.data('fid'); // Extract info from data-* attributes
+                var modal = $(this);
+                modal.find('.modal-title').text(recipient);
+                if (fid) {
+                    // 编辑
+                    modal.find('#id_name').val(name);
+                    modal.find('#fid').val(fid);
+                } else {
+                    // 新建
+                    modal.find('.error-msg').empty();
+                    $('#form')[0].reset();
+                }
             });
-         function initAddModal() {
-                $('#addModal').on('show.bs.modal', function (event) {
-                    var button = $(event.relatedTarget); // Button that triggered the modal
-                    var recipient = button.data('whatever'); // Extract info from data-* attributes
-                    var name = button.data('name'); // Extract info from data-* attributes
-                    var fid = button.data('fid'); // Extract info from data-* attributes
-                    var modal = $(this);
-                    modal.find('.modal-title').text(recipient);
-                    if (fid) {
-                       // 编辑
-                       modal.find('#id_name').val(name);
-                       modal.find('#fid').val(fid);
-                    } else {
-                       // 新建
-                       modal.find('.error-msg').empty();
-                       $('#form')[0].reset();
-                    }
-                });
 
-                {#$('#alertModal').on('show.bs.modal', function (event) {#}
-                {#    var button = $(event.relatedTarget); // Button that triggered the modal#}
-                {#    var fid = button.data('fid'); // Extract info from data-* attributes#}
-                {#    $('#btnDelete').attr('fid', fid);#}
-                {##}
-                {# })#}
-            }
+            $('#alertModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered the modal
+                var fid = button.data('fid'); // Extract info from data-* attributes
+                $('#btnDelete').attr('fid', fid);
+
+            })
+        }
 
 
-            function bindModelSubmit() {
+        function bindModelSubmit() {
             $('#btnFormSubmit').click(function () {
                 $.ajax({
                     url: location.href,
@@ -220,6 +245,112 @@
                     }
                 })
             })
+        }
+
+        function bindDeleteSubmit() {
+            $('#btnDelete').click(function () {
+                // 获取要删除那行ID
+                $.ajax({
+                    url: '{% url 'file_delete' project_id=request.project.id %}',
+                    type: "GET",
+                    data: {fid: $(this).attr('fid')},
+                    success: function (res) {
+                        if (res.status) {
+                            location.href = location.href;
+                        }
+                    }
+                })
+            })
+        }
+
+        function bindUploadFile() {
+            $('#uploadFile').change(function () {
+                $('#progressList').empty();
+
+                var fileList = $(this)[0].files;
+                // 获取本次要上传的每个文件 名称&大小
+                var checkFileList = [];
+                $.each(fileList, function (index, fileObject) {
+                    checkFileList.push({'name': fileObject.name, 'size': fileObject.size})
+                });
+
+                // 把这些数据发送到django后台：Django后台进行容量的校验，如果么有问题则返回临时凭证；否则返回错误信息；
+                var cos_credential = new COS({
+                    getAuthorization: function (options, callback) {
+                        $.post(COS_CREDENTIAL, JSON.stringify(checkFileList), function (res) {
+                            if (res.status) {
+                                var credentials = res.data && res.data.credentials;
+                                callback({
+                                    TmpSecretId: credentials.tmpSecretId,
+                                    TmpSecretKey: credentials.tmpSecretKey,
+                                    XCosSecurityToken: credentials.sessionToken,
+                                    StartTime: res.data.startTime,
+                                    ExpiredTime: res.data.expiredTime
+                                });
+
+                                $('#uploadProgress').removeClass('hide');
+                            } else {
+                                alert(res.error);
+                            }
+                        });
+                    }
+                });
+
+                // 上传文件（上传之前先获取临时凭证
+                $.each(fileList, function (index, fileObject) {
+                    var fileName = fileObject.name;
+                    var fileSize = fileObject.size;
+                    var key = (new Date()).getTime() + "_" + fileName;
+
+                    var tr = $('#progressTemplate').find('tr').clone();
+                    tr.find('.name').text(fileName);
+                    $('#progressList').append(tr);
+
+                    // 上传文件（异步）
+                    cos_credential.putObject({
+                        Bucket: '{{ request.project.bucket }}', /* 必须 */
+                        Region: '{{ request.project.region }}', /* 存储桶所在地域，必须字段 */
+                        Key: key, /* 必须 */
+                        Body: fileObject, // 上传文件对象
+                        onProgress: function (progressData) {
+                            var percent = progressData.percent * 100 + '%';
+                            tr.find('.progress-bar').text(percent);
+                            tr.find('.progress-bar').css('width', percent);
+                        }
+                    }, function (err, data) {
+                        if (data && data.statusCode === 200) {
+                            // 上传成功，将本次上传的文件提交到后台并写入数据
+                            // 当前文件上传成功
+                            $.post(FILE_POST, {
+                                name: fileName,
+                                key: key,
+                                file_size: fileSize,
+                                parent: CURRENT_FOLDER_ID,
+                                etag: data.ETag,
+                                file_path: data.Location
+                            }, function (res) {
+                                // 在数据库中写入成功，将已添加的数据在页面上动态展示。
+                                var newTr = $('#rowTpl').find('tr').clone();
+                                newTr.find('.name').text(res.data.name);
+                                newTr.find('.file_size').text(res.data.file_size);
+                                newTr.find('.username').text(res.data.username);
+                                newTr.find('.datetime').text(res.data.datetime);
+                                newTr.find('.delete').attr('data-fid', res.data.id);
+                                newTr.find('.download').attr('href', res.data.download_url);
+                                $('#rowList').append(newTr);
+
+                                // 自己的进度删除
+                                tr.remove();
+                            })
+
+                        } else {
+                            tr.find('.progress-error').text('上传失败');
+                        }
+                    });
+
+
+                })
+            });
         }
     </script>
 

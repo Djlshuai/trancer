@@ -3,6 +3,8 @@ from web.forms.file import FolderForm
 from django.http import JsonResponse
 from web import models
 from django.forms import model_to_dict
+from utiles.Tencent.cos import delete_file,delete_file_list,credential
+import json
 
 def file(request, project_id):
     parent_object = None
@@ -48,3 +50,72 @@ def file(request, project_id):
             form.save()
             return JsonResponse({'status': True})
         return JsonResponse({'status': False, 'error': form.errors})
+
+def file_delete(request, project_id):
+    fid = request.GET.get('fid')
+    '''删除文件架及文件，级联删除'''
+    delete_object = models.FileRepository.objects.filter(id=int(fid),project=request.project).first()
+
+    if delete_object.file_type == 1:
+        '''删文件'''
+        request.project.use_space -= delete_object.file_size
+        request.project.save()
+        delete_file(request.project.bucket, request.project.region, delete_object.key)
+        delete_object.delete()
+        return JsonResponse({'status': True})
+
+    else:
+        '''删除文件夹'''
+        total_size = 0
+        key_list = []
+        folder_list = [delete_object, ]
+        for folder in folder_list:
+            child_list = models.FileRepository.objects.filter(project=request.project, parent=folder).order_by(
+                '-file_type')
+            for child in child_list:
+                if child.file_type == 2:
+                    folder_list.append(child)
+                else:
+                    # 文件大小汇总
+                    total_size += child.file_size
+                    # 删除文件
+                    key_list.append({"Key": child.key})
+
+    if key_list:
+        delete_file_list(request.project.bucket, request.project.region, key_list)
+
+    if total_size:
+        request.project.use_space -= total_size
+        request.project.save()
+
+    delete_object.delete()
+    return JsonResponse({'status': True})
+
+def cos_credential(request,project_id):
+    '''获取临时凭证'''
+    """ 获取cos上传临时凭证 """
+    per_file_limit = request.tracer.price_policy.per_file_size * 1024 * 1024
+    total_file_limit = request.tracer.price_policy.project_space * 1024 * 1024 * 1024
+
+    total_size = 0
+    file_list = json.loads(request.body.decode('utf-8'))
+    for item in file_list:
+        # 文件的字节大小 item['size'] = B
+        # 单文件限制的大小 M
+        # 超出限制
+        if item['size'] > per_file_limit:
+            msg = "单文件超出限制（最大{}M），文件：{}，请升级套餐。".format(request.tracer.price_policy.per_file_size,
+                                                                       item['name'])
+            return JsonResponse({'status': False, 'error': msg})
+        total_size += item['size']
+
+        # 做容量限制：单文件 & 总容量
+
+    # 总容量进行限制
+    # request.tracer.price_policy.project_space  # 项目的允许的空间
+    # request.tracer.project.use_space # 项目已使用的空间
+    if request.project.use_space + total_size > total_file_limit:
+        return JsonResponse({'status': False, 'error': "容量超过限制，请升级套餐。"})
+
+    data_dict = credential(request.project.bucket, request.project.region)
+    return JsonResponse({'status': True, 'data': data_dict})

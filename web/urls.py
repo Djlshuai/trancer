@@ -34,7 +34,8 @@ urlpatterns = [
     url(r'^manage/(?P<project_id>\d+)/wiki/upload/$', wiki.wiki_upload, name='wiki_upload'),
 
     url(r'^manage/(?P<project_id>\d+)/file/$', file.file, name='file'),
-
+    url(r'^manage/(?P<project_id>\d+)/file/delete/$', file.file_delete, name='file_delete'),
+    url(r'^manage/(?P<project_id>\d+)/cos/credential/$', file.cos_credential, name='cos_credential'),
 
     url(r'^manage/(?P<project_id>\d+)/settings/$', manage.settings, name='settings'),
 
