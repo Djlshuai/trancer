@@ -117,10 +117,10 @@
                                     <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
                                 </a>
                             {% else %}
-                                {#                                <a class="btn btn-default btn-xs"#}
-                                {#                                   href="{% url 'file_download' project_id=request.tracer.project.id file_id=item.id %}">#}
-                                {#                                    <i class="fa fa-cloud-download" aria-hidden="true"></i>#}
-                                {#                                </a>#}
+                                <a class="btn btn-default btn-xs"
+                                   href="{% url 'file_download' project_id=request.project.id file_id=item.id %}">
+                                    <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                                </a>
                             {% endif %}
                             <a class="btn btn-danger btn-xs"
                                data-toggle="modal"
@@ -181,6 +181,62 @@
             </div>
         </div>
     </div>
+
+    <div id="uploadProgress" class="upload-progress hide">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <i class="fa fa-cloud-upload" aria-hidden="true"></i> 上传进度
+            </div>
+
+            <table class="table">
+                <tbody id="progressList">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="hide">
+        <table id="progressTemplate">
+            <tr>
+                <td>
+                    <div class="name"></div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar"
+                             aria-valuenow="0"
+                             aria-valuemin="0"
+                             aria-valuemax="100" style="width: 0%;">
+                            0%
+                        </div>
+                    </div>
+                    <div class="progress-error"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="hide">
+        <table id="rowTpl">
+            <tr>
+                <td>
+                    <i class="fa fa-file" aria-hidden="true"></i>
+                    <span class="name"></span>
+                </td>
+                <td class="file_size"></td>
+                <td class="username"></td>
+                <td class="datetime"></td>
+                <td>
+
+                    <a class="btn btn-default btn-xs download">
+                        <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                    </a>
+
+                    <a class="btn btn-danger btn-xs delete" data-toggle="modal" data-target="#alertModal">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -190,13 +246,13 @@
         var COS_CREDENTIAL = "{% url 'cos_credential' project_id=request.project.id %}";
         var FILE_POST = "{% url 'file_post' project_id=request.project.id %}";
         var CURRENT_FOLDER_ID = "{{ folder_object.id }}";
-       
-       
+
+
         $(function () {
             initAddModal();
             bindModelSubmit();
             bindDeleteSubmit();
-            {#bindUploadFile()#}
+            bindUploadFile()
         });
 
         function initAddModal() {
@@ -338,7 +394,6 @@
                                 newTr.find('.delete').attr('data-fid', res.data.id);
                                 newTr.find('.download').attr('href', res.data.download_url);
                                 $('#rowList').append(newTr);
-
                                 // 自己的进度删除
                                 tr.remove();
                             })

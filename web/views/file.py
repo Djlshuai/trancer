@@ -1,11 +1,13 @@
-from django.shortcuts import render
-from web.forms.file import FolderForm
+from django.shortcuts import render, HttpResponse
+from web.forms.file import FolderForm,FileModelForm
 from django.http import JsonResponse
 from web import models
 from django.forms import model_to_dict
 from utiles.Tencent.cos import delete_file,delete_file_list,credential
 import json
-
+from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+import requests
 def file(request, project_id):
     parent_object = None
     folder_id = request.GET.get('folder', "")
@@ -30,7 +32,8 @@ def file(request, project_id):
             file_object_list = queryset.filter(parent__isnull=True).order_by('-file_type')
         form = FolderForm(request, parent_object)
         '''文件列表'''
-        return render(request, 'file.html', {'form': form,'file_object_list':file_object_list,'breadcrumb_list':breadcrumb_list})
+        return render(request, 'file.html', {
+            'form': form,'file_object_list':file_object_list,'breadcrumb_list':breadcrumb_list,'folder_object':parent_object})
     else:
         fid = request.POST.get('fid', '')
         edit_object = None
@@ -91,6 +94,7 @@ def file_delete(request, project_id):
     delete_object.delete()
     return JsonResponse({'status': True})
 
+@csrf_exempt
 def cos_credential(request,project_id):
     '''获取临时凭证'''
     """ 获取cos上传临时凭证 """
@@ -119,3 +123,66 @@ def cos_credential(request,project_id):
 
     data_dict = credential(request.project.bucket, request.project.region)
     return JsonResponse({'status': True, 'data': data_dict})
+
+@csrf_exempt
+def file_post(request, project_id):
+    """ 已上传成功的文件写入到数据 """
+    """
+    name: fileName,
+    key: key,
+    file_size: fileSize,
+    parent: CURRENT_FOLDER_ID,
+    # etag: data.ETag,
+    file_path: data.Location
+    """
+
+    # 根据key再去cos获取文件Etag和"db7c0d83e50474f934fd4ddf059406e5"
+
+    print(request.POST)
+    # 把获取到的数据写入数据库即可
+    form = FileModelForm(request, data=request.POST)
+    if form.is_valid():
+        # 通过ModelForm.save存储到数据库中的数据返回的isntance对象，无法通过get_xx_display获取choice的中文
+        # form.instance.file_type = 1
+        # form.update_user = request.tracer.user
+        # instance = form.save() # 添加成功之后，获取到新添加的那个对象（instance.id,instance.name,instance.file_type,instace.get_file_type_display()
+
+        # 校验通过：数据写入到数据库
+        data_dict = form.cleaned_data
+        data_dict.pop('etag')
+        data_dict.update({'project': request.project, 'file_type': 1, 'update_user': request.tracer})
+        instance = models.FileRepository.objects.create(**data_dict)
+
+        # 项目的已使用空间：更新 (data_dict['file_size'])
+        request.project.use_space += data_dict['file_size']
+        request.project.save()
+
+        result = {
+            'id': instance.id,
+            'name': instance.name,
+            'file_size': instance.file_size,
+            'username': instance.update_user.username,
+            'datetime': instance.update_datetime.strftime('%Y{y}%m{m}%d{d} %H{h}%M{f}%S{s}').format(y='年',m='月',d='日',h='时',f='分',s='秒'),
+            'download_url': reverse('file_download', kwargs={"project_id": project_id, 'file_id': instance.id})
+            # 'file_type': instance.get_file_type_display()
+        }
+        return JsonResponse({'status': True, 'data': result})
+
+    return JsonResponse({'status': False, 'data': "文件错误"})
+
+
+def file_download(request,project_id,file_id):
+    """ 下载文件 """
+    file_object = models.FileRepository.objects.filter(id=file_id, project_id=project_id).first()
+    res = requests.get(file_object.file_path)
+
+    # 文件分块处理（适用于大文件）     @孙歆尧
+    data = res.iter_content()
+
+    # 设置content_type=application/octet-stream 用于提示下载框        @孙歆尧
+    response = HttpResponse(data, content_type="application/octet-stream")
+    from django.utils.encoding import escape_uri_path
+
+    # 设置响应头：中文件文件名转义      @王洋
+    response['Content-Disposition'] = "attachment; filename={};".format(escape_uri_path(file_object.name))
+    return response

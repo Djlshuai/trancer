@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'^manage/(?P<project_id>\d+)/file/$', file.file, name='file'),
     url(r'^manage/(?P<project_id>\d+)/file/delete/$', file.file_delete, name='file_delete'),
     url(r'^manage/(?P<project_id>\d+)/cos/credential/$', file.cos_credential, name='cos_credential'),
+    url(r'^manage/(?P<project_id>\d+)/file/post/$', file.file_post, name='file_post'),
+    url(r'^manage/(?P<project_id>\d+)/file/download/(?P<file_id>\d+)/$', file.file_download, name='file_download'),
 
     url(r'^manage/(?P<project_id>\d+)/settings/$', manage.settings, name='settings'),
 

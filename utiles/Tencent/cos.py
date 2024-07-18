@@ -106,3 +106,14 @@ def credential(bucket, region):
     sts = Sts(config)
     result_dict = sts.get_credential()
     return result_dict
+
+def check_file(bucket, region, key):
+    config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
+    client = CosS3Client(config)
+
+    data = client.head_object(
+        Bucket=bucket,
+        Key=key
+    )
+
+    return data
