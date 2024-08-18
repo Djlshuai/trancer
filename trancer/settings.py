@@ -27,6 +27,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+TIME_ZONE = 'Asia/Shanghai'
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = False
+
 
 # Application definition
 
@@ -142,7 +150,7 @@ TENCENT_SMS_TEMPLATE = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.10.129:6379", # 安装redis的主机的 IP 和 端口
+        "LOCATION": "redis://192.168.0.101:6379", # 安装redis的主机的 IP 和 端口
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {
@@ -161,6 +169,7 @@ WHITE_REGEX_URL_LIST = [
     "/login/",
     "/index/",
     "/image/code/",
+    "/price/",
 ]
 
 

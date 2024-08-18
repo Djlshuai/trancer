@@ -1,17 +1,18 @@
 # -*- coding=utf-8
-from qcloud_cos import CosConfig
+from qcloud_cos import CosConfig, CosServiceError
 from qcloud_cos import CosS3Client
 import sys
 import os
 import logging
 from trancer import local_settings
 
-def create_bucket(bucket,region="ap-guangzhou"):
-# 正常情况日志级别使用 INFO，需要定位时可以修改为 DEBUG，此时 SDK 会打印和服务端的通信信息
+
+def create_bucket(bucket, region="ap-guangzhou"):
+    # 正常情况日志级别使用 INFO，需要定位时可以修改为 DEBUG，此时 SDK 会打印和服务端的通信信息
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
     # 1. 设置用户属性, 包括 secret_id, secret_key, region等。Appid 已在 CosConfig 中移除，请在参数 Bucket 中带上 Appid。Bucket 由 BucketName-Appid 组成
-    region = region      # 替换为用户的 region，已创建桶归属的 region 可以在控制台查看，https://console.cloud.tencent.com/cos5/bucket
+    region = region  # 替换为用户的 region，已创建桶归属的 region 可以在控制台查看，https://console.cloud.tencent.com/cos5/bucket
 
     config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
     client = CosS3Client(config)
@@ -36,6 +37,7 @@ def create_bucket(bucket,region="ap-guangzhou"):
         CORSConfiguration=cors_config
     )
 
+
 def upload_file(bucket, region, file_object, key):
     config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
     client = CosS3Client(config)
@@ -50,6 +52,7 @@ def upload_file(bucket, region, file_object, key):
 
     return "https://{}.cos.{}.myqcloud.com/{}".format(bucket, region, key)
 
+
 def delete_file(bucket, region, key):
     config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
     client = CosS3Client(config)
@@ -58,6 +61,7 @@ def delete_file(bucket, region, key):
         Bucket=bucket,
         Key=key  # 上传到桶之后的文件名
     )
+
 
 def delete_file_list(bucket, region, key_list):
     config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
@@ -70,6 +74,7 @@ def delete_file_list(bucket, region, key_list):
         Bucket=bucket,
         Delete=objects
     )
+
 
 def credential(bucket, region):
     """ 获取cos上传临时凭证 """
@@ -107,6 +112,7 @@ def credential(bucket, region):
     result_dict = sts.get_credential()
     return result_dict
 
+
 def check_file(bucket, region, key):
     config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
     client = CosS3Client(config)
@@ -117,3 +123,47 @@ def check_file(bucket, region, key):
     )
 
     return data
+
+
+def delete_bucket(bucket, region):
+    """ 删除桶 """
+    # 删除桶中所有文件
+    # 删除桶中所有碎片
+    # 删除桶
+    config = CosConfig(Region=region, SecretId=local_settings.TENCENT_COS_ID, SecretKey=local_settings.TENCENT_COS_KEY)
+    client = CosS3Client(config)
+
+    try:
+        # 找到文件 & 删除
+        while True:
+            part_objects = client.list_objects(bucket)
+
+            # 已经删除完毕，获取不到值
+            contents = part_objects.get('Contents')
+            if not contents:
+                break
+
+            # 批量删除
+            objects = {
+                "Quiet": "true",
+                "Object": [{'Key': item["Key"]} for item in contents]
+            }
+            client.delete_objects(bucket, objects)
+
+            if part_objects['IsTruncated'] == "false":
+                break
+
+        # 找到碎片 & 删除
+        while True:
+            part_uploads = client.list_multipart_uploads(bucket)
+            uploads = part_uploads.get('Upload')
+            if not uploads:
+                break
+            for item in uploads:
+                client.abort_multipart_upload(bucket, item['Key'], item['UploadId'])
+            if part_uploads['IsTruncated'] == "false":
+                break
+
+        client.delete_bucket(bucket)
+    except CosServiceError as e:
+        pass
